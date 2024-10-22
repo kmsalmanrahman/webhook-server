@@ -3,6 +3,7 @@ const path = require('path');
 
 const jsonFilePath = path.join(__dirname, '..', 'data', 'webhookResponses.json');
 
+// Function to read the webhook responses JSON file
 const readJsonFile = () => {
   try {
     const data = fs.readFileSync(jsonFilePath);
@@ -12,10 +13,12 @@ const readJsonFile = () => {
   }
 };
 
+// Function to write data to the webhook responses JSON file
 const writeJsonFile = (data) => {
   fs.writeFileSync(jsonFilePath, JSON.stringify(data, null, 2));
 };
 
+// Handler to process incoming webhook requests
 const handleWebhook = (req, res) => {
   console.log('Webhook received!');
   console.log('Headers:', req.headers);
@@ -31,12 +34,20 @@ const handleWebhook = (req, res) => {
   responses.push(newEntry);
   writeJsonFile(responses);
 
-  res.status(200).json({ 
-    message: 'Webhook received successfully!', 
-    responseHeader: req.headers, 
-    responseBody: req.body 
+  res.status(200).json({
+    message: 'Webhook received successfully!',
+    responseHeader: req.headers,
+    responseBody: req.body,
   });
 };
+
+// Handler to clear the webhook responses file
+const clearWebhookResponses = (req, res) => {
+  writeJsonFile([]); // Clear the file by writing an empty array
+  res.redirect('/webhook/view'); // Redirect back to the main page after clearing
+};
+
+// Handler to display the stored webhook responses with pagination
 const getWebhookResponses = (req, res) => {
   const responses = readJsonFile().reverse();
 
@@ -110,6 +121,9 @@ const getWebhookResponses = (req, res) => {
       </head>
       <body>
         <h1>Webhook Responses - Page ${page}</h1>
+        <form action="/webhook/clear" method="POST">
+          <button type="submit">Clear Webhook Responses</button>
+        </form>
         <table>
           <thead>
             <tr>
@@ -154,7 +168,6 @@ const getWebhookResponses = (req, res) => {
 
   res.send(html);
 };
-  
-  
-module.exports = { handleWebhook, getWebhookResponses };
-  
+
+// Export the functions
+module.exports = { handleWebhook, getWebhookResponses, clearWebhookResponses };
